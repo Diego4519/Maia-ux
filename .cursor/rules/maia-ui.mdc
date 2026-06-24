@@ -1,0 +1,139 @@
+---
+description: MAIA UI pact — Shadcn neutral, Jean/white-label rules, process before code
+globs:
+  - "**/*.tsx"
+  - "**/*.css"
+  - "**/*.ts"
+alwaysApply: true
+---
+
+# MAIA UI — Pacto de trabajo (Product Owner + Shadcn + Jean)
+
+## 0. ANTES DE ESCRIBIR CÓDIGO (obligatorio)
+
+No implementar cambios de UI hasta que el usuario apruebe un mini-plan en texto.
+
+Para cada tarea, declarar explícitamente:
+1. **Tipo:** ¿estructura (layout/rutas), visual (colores/densidad), o datos (mock/API)?
+2. **Alcance:** ¿qué pantalla o módulo exacto? (ej. solo `Individual`, no todo el hub)
+3. **Shadcn:** ¿usa solo `@workspace/ui` y tokens del tema?
+4. **Jean:** ¿respeta white-label neutro, poco saturado, excepciones primero?
+5. **Aprobación:** esperar confirmación del usuario si el alcance es nuevo o ambiguo.
+
+Si falta claridad → proponer plan, NO codificar.
+
+---
+
+## 1. Qué es la base Shadcn en este proyecto
+
+- **NO** es una app web ni requiere cuenta en ui.shadcn.com.
+- **SÍ** es la librería local en `packages/ui/` (componentes copiados, código nuestro).
+- La app vive en `apps/web/` e importa desde `@workspace/ui`.
+- El tema neutro vive en `packages/ui/src/styles/globals.css` (blanco, negro, grises).
+- `ui.shadcn.com/create` solo sirve para generar presets/comandos; el producto corre en local.
+
+**Arquitectura fija:**
+```
+maia-platform/
+├── packages/ui/     ← única fuente de componentes Shadcn
+├── apps/web/        ← pantallas MAIA (rutas, layouts, mock-data)
+└── .cursor/rules/   ← estas reglas
+```
+
+---
+
+## 2. Reglas visuales — White-label / Maya Total Neutral
+
+### Usar SIEMPRE
+- Tokens del tema: `background`, `foreground`, `primary`, `secondary`, `muted`, `border`, `card`.
+- Componentes Shadcn: `Button`, `Card`, `Input`, `Table`, `Sidebar`, `Badge`, `Tabs`, etc. desde `@workspace/ui`.
+- Fuentes: **Montserrat** (headings), **Outfit** (body).
+- Superficies neutras: blanco, gris claro, gris oscuro, negro suave.
+
+### Usar SOLO para semántica de negocio (inmutable)
+- **Rojo** → riesgo alto / crítico / rechazar
+- **Ámbar** → riesgo medio / pendiente
+- **Verde** → riesgo bajo / aceptar / listo
+
+### PROHIBIDO sin aprobación explícita del usuario
+- Colores de marca fijos: `violet-*`, `purple-*`, `blue-950` decorativo, etc.
+- Franjas o barras `bg-foreground` / negro grande como decoración.
+- KPI cards con bordes de colores distintos cada una.
+- Copiar la paleta de mockups ChatGPT/Gemini (eran referencia de **estructura**, no de diseño final).
+- Librerías UI externas o HTML estilizado desde cero.
+- Saturar dashboards: muchos gráficos, badges y métricas a la vez.
+
+### Acento de cliente (futuro)
+- El color de marca por tenant vendrá después vía API/theming.
+- Hasta entonces: **100% neutro** salvo badges de riesgo.
+
+---
+
+## 3. Reglas de estructura (Jean + Screening Team Workbench)
+
+### Sidebar — módulos comerciales
+- **Screening** → activo (expandible).
+- **KYC Onboarding**, **Monitoreo Continuo** → visibles, disabled / "Próximamente".
+- **Add-ons** (antifraude, medios adversos, evidencia, API…) → disabled hasta fase posterior.
+
+### Dentro de Screening — Workbench (tabs)
+Rutas objetivo (estructura acordada, implementar tab por tab con aprobación):
+- `/screening/overview`
+- `/screening/individual`
+- `/screening/massive`
+- `/screening/api-alerts`
+- `/screening/sources`
+- `/screening/policy`
+- `/screening/evidence`
+
+### Layout Workbench (patrón de estructura, no de color)
+- Breadcrumb + título + descripción corta.
+- Tabs horizontales del workbench.
+- KPI strip: **máximo 4** métricas, cards **neutras** (mismo estilo).
+- Automation strip: **discreta** (muted/border), no barra negra llamativa.
+- Área principal: 2 columnas en desktop (trabajo | panel decisión/detalle).
+- Panel derecho: decisión, reasoning, evidencia — solo cuando hay contexto.
+
+### UX (Jean — reunión)
+- Usuario: oficial de **cumplimiento**, no ingeniero.
+- Inspiración de simplicidad: **GS Intel** (input + buscar + resultados).
+- **"Human work = exception work"** — por defecto mostrar excepciones, no todo.
+- Individual: búsqueda simple; panel de decisión **después** de buscar.
+- Massive: métricas clave + tabla **solo excepciones**, no miles de filas.
+- API Alerts: filtro por defecto **"Requieren resolución"**.
+- Overview: mapa O1–O6, sin dashboard sobrecargado.
+
+---
+
+## 4. Componentes MAIA (convenciones)
+
+- Componentes de dominio MAIA: `apps/web/components/maia/` y `apps/web/components/workbench/`.
+- A medio plazo, piezas reutilizables deben migrar a `packages/ui/` o paquete `@maia/ui`.
+- `MaiaCard` + `riskLevel` solo cuando la tarjeta representa KPI/alerta de riesgo.
+- `AgentReasoningCard`: fondo `muted`, borde `border` — **no** violeta por defecto.
+- `DecisionPanel`, `ScreeningSetSelector`, `AutomationStrip`: estilo neutro Shadcn.
+
+---
+
+## 5. Integración con backend (futuro)
+
+Cuando Diego Valdez entregue APIs:
+- **Mantener** misma estructura de pantallas y mismos componentes.
+- **Reemplazar** solo `apps/web/lib/mock-data.ts` (o services), no rediseñar UI.
+- Los contratos de datos se adaptan a la estructura existente, no al revés.
+
+---
+
+## 6. Checklist antes de cada PR / demo
+
+- [ ] ¿Solo `@workspace/ui`?
+- [ ] ¿Colores = tema neutro + badges de riesgo únicamente?
+- [ ] ¿Sin saturación (mínimo de métricas visibles)?
+- [ ] ¿Estructura alineada al Workbench acordado?
+- [ ] ¿Usuario aprobó el alcance antes de implementar?
+
+---
+
+## 7. Qué decir en demo con Jean
+
+"Monorepo Shadcn con tema neutral white-label. Estructura del Screening Team Workbench validada tab por tab. Visual en grises a propósito; color de marca y pulido fino vienen en iteración con Product Owner."
