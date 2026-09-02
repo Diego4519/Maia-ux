@@ -1,0 +1,25 @@
+MAIA — ZIP 2: Paquete de componentes
+====================================
+
+Qué es: solo las piezas UI implementadas (sin app completa).
+
+Contenido:
+1. packages/ui/              → 16 componentes Shadcn (button, card, sidebar, table…)
+2. apps/web/components/      → 14 componentes MAIA (workbench, búsqueda, sidebar…)
+3. .cursor/rules/maia-ui.mdc → pacto visual/UX
+
+Para qué sirve:
+- Importar/revisar componentes en otro flujo o herramienta
+- "Jugar" con las piezas sin levantar todo el monorepo
+- Referencia de lo implementado en la demo
+
+Lista Shadcn (packages/ui):
+button, card, input, badge, sidebar, table, tabs, select, avatar,
+collapsible, separator, tooltip, dialog, sheet, dropdown-menu, skeleton
+
+Lista MAIA (apps/web/components):
+WorkbenchShell, ScreeningSearchBar, DecisionPanel, KpiStrip, AutomationStrip,
+MaiaSidebar, AppShell, RiskBadge, AgentReasoningCard, ScreeningSetSelector…
+
+Tema: neutral white-label en packages/ui/src/styles/globals.css
+Fuentes: Montserrat + Outfit

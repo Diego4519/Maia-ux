@@ -1,6 +1,8 @@
 import { Montserrat, Outfit } from "next/font/google"
 
 import "@workspace/ui/globals.css"
+import { MaiaToastProvider } from "@/components/maia/maia-toast"
+import { WorkbenchProvider } from "@/lib/workbench-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -14,6 +16,11 @@ const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
 })
+
+export const metadata = {
+  title: "MAIA Compliance Hub",
+  description: "Plataforma de screening y cumplimiento AML",
+}
 
 export default function RootLayout({
   children,
@@ -31,8 +38,12 @@ export default function RootLayout({
         "font-sans"
       )}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body suppressHydrationWarning>
+        <ThemeProvider>
+          <MaiaToastProvider>
+            <WorkbenchProvider>{children}</WorkbenchProvider>
+          </MaiaToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

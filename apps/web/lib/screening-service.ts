@@ -1,12 +1,5 @@
-import type {
-  ScreeningMatch,
-  SubjectProfile,
-} from "@/lib/mock-data"
-import {
-  agentReasoningDefault,
-  screeningMatches,
-  subjectProfile,
-} from "@/lib/mock-data"
+import type { ScreeningMatch, SubjectProfile } from "@/lib/mock-data"
+import { findDemoSubject, type SourceCoverageItem } from "@/lib/demo-profiles"
 import { getDb } from "@/lib/mongodb"
 
 export interface ScreeningSearchResult {
@@ -14,6 +7,7 @@ export interface ScreeningSearchResult {
   profile: SubjectProfile
   matches: ScreeningMatch[]
   reasoning: string
+  sourceCoverage: SourceCoverageItem[]
 }
 
 export interface ScreeningSubjectDocument {
@@ -35,28 +29,38 @@ function escapeRegex(value: string) {
 }
 
 function mockSearch(query: string): ScreeningSearchResult {
-  const normalized = query.toLowerCase()
-  const matchesProfile =
-    subjectProfile.name.toLowerCase().includes(normalized) ||
-    subjectProfile.document.toLowerCase().includes(normalized) ||
-    screeningMatches.some((match) =>
-      match.name.toLowerCase().includes(normalized)
-    )
+  const trimmed = query.trim()
+  const demo = findDemoSubject(trimmed)
+
+  if (demo) {
+    return {
+      source: "mock",
+      profile: demo.profile,
+      matches: demo.matches,
+      reasoning: demo.reasoning,
+      sourceCoverage: demo.sourceCoverage,
+    }
+  }
 
   return {
     source: "mock",
-    profile: matchesProfile
-      ? subjectProfile
-      : {
-          ...subjectProfile,
-          name: query,
-          document: "Sin documento",
-          tags: ["Consulta nueva", "Pendiente de normalización"],
-        },
-    matches: matchesProfile ? screeningMatches : [],
-    reasoning: matchesProfile
-      ? agentReasoningDefault
-      : "Sin coincidencias críticas en listas activas. MAIA recomienda aceptar con monitoreo estándar.",
+    profile: {
+      id: `sub-new-${Date.now()}`,
+      name: trimmed,
+      document: "Sin documento",
+      nationality: "—",
+      birthdate: "—",
+      tags: ["Consulta nueva", "Sin coincidencias"],
+    },
+    matches: [],
+    reasoning:
+      "MAIA no encontró coincidencias críticas en las listas activas para esta consulta.",
+    sourceCoverage: [
+      { name: "PEP Perú", status: "not_found" },
+      { name: "OFAC SDN", status: "not_found" },
+      { name: "Medios adversos", status: "not_found" },
+      { name: "UN Consolidated", status: "not_found" },
+    ],
   }
 }
 
@@ -87,20 +91,7 @@ export async function searchScreening(
     })
 
     if (!document) {
-      return {
-        source: "mongodb",
-        profile: {
-          id: `sub-${Date.now()}`,
-          name: trimmed,
-          document: "Sin documento",
-          nationality: "—",
-          birthdate: "—",
-          tags: ["Consulta nueva", "Sin coincidencias"],
-        },
-        matches: [],
-        reasoning:
-          "MAIA no encontró coincidencias críticas en las listas activas para esta consulta.",
-      }
+      return mockSearch(trimmed)
     }
 
     const { matches, reasoning, ...profile } = document
@@ -117,6 +108,12 @@ export async function searchScreening(
       },
       matches,
       reasoning,
+      sourceCoverage: [
+        { name: "PEP Perú", status: "not_found" },
+        { name: "OFAC SDN", status: "not_found" },
+        { name: "Medios adversos", status: "not_found" },
+        { name: "UN Consolidated", status: "not_found" },
+      ],
     }
   } catch {
     return mockSearch(trimmed)
@@ -124,59 +121,16 @@ export async function searchScreening(
 }
 
 export async function seedScreeningSubjects() {
+  const { demoSubjects } = await import("@/lib/demo-profiles")
   const db = await getDb()
   const collection = db.collection<ScreeningSubjectDocument>(COLLECTION)
 
-  const subjects: ScreeningSubjectDocument[] = [
-    {
-      ...subjectProfile,
-      searchTerms: [
-        "carlos",
-        "ramirez",
-        "torres",
-        "45892136",
-        "carlos alberto ramirez torres",
-      ],
-      matches: screeningMatches,
-      reasoning: agentReasoningDefault,
-    },
-    {
-      id: "sub-002",
-      name: "María Fernanda López",
-      document: "DNI 32145678",
-      nationality: "Perú",
-      birthdate: "02/08/1985",
-      tags: ["Persona natural", "PEP Nacional"],
-      searchTerms: ["maria", "lopez", "fernanda", "32145678"],
-      matches: [screeningMatches[1]!],
-      reasoning:
-        "Coincidencia media en PEP Nacional. Revisión humana recomendada antes de onboarding.",
-    },
-    {
-      id: "sub-003",
-      name: "Inversiones Andinas S.A.C.",
-      document: "RUC 20547896321",
-      nationality: "Perú",
-      birthdate: "—",
-      tags: ["Persona jurídica", "Empresa"],
-      searchTerms: ["inversiones", "andinas", "sac", "20547896321"],
-      matches: [
-        {
-          id: "4",
-          name: "Inversiones Andinas S.A.C.",
-          entityType: "Empresa",
-          score: 78,
-          riskLevel: "high",
-          status: "Pendiente",
-          source: "Sanciones UE",
-          confidence: 78,
-          decision: "Escalar a revisión humana",
-        },
-      ],
-      reasoning:
-        "Posible coincidencia en lista de sanciones. Validar con documentación corporativa.",
-    },
-  ]
+  const subjects: ScreeningSubjectDocument[] = demoSubjects.map((d) => ({
+    ...d.profile,
+    searchTerms: d.searchTerms,
+    matches: d.matches,
+    reasoning: d.reasoning,
+  }))
 
   await collection.deleteMany({})
   await collection.insertMany(subjects)

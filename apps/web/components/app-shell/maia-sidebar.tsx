@@ -42,6 +42,8 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import { useWorkbench } from "@/lib/workbench-context"
+import { massiveBatch } from "@/lib/mock-data"
 
 const screeningItems = [
   { title: "Overview", href: "/screening/overview", icon: LayoutDashboard },
@@ -54,8 +56,8 @@ const screeningItems = [
 ]
 
 const upcomingModules = [
-  { title: "KYC Onboarding", icon: UserCheck },
-  { title: "Monitoreo Continuo", icon: Activity },
+  { title: "KYC Onboarding", href: "/kyc", icon: UserCheck },
+  { title: "Monitoreo Continuo", href: "/monitoring", icon: Activity },
 ]
 
 const addonModules = [
@@ -69,6 +71,13 @@ const addonModules = [
 export function MaiaSidebar() {
   const pathname = usePathname()
   const isScreeningActive = pathname.startsWith("/screening")
+  const { pendingAlerts, exceptionQueue } = useWorkbench()
+
+  const badges: Record<string, number | undefined> = {
+    "/screening/overview": exceptionQueue.length || undefined,
+    "/screening/api-alerts": pendingAlerts || undefined,
+    "/screening/massive": massiveBatch.exceptions,
+  }
 
   return (
     <Sidebar variant="inset">
@@ -125,6 +134,14 @@ export function MaiaSidebar() {
                             <Link href={item.href}>
                               <item.icon />
                               <span>{item.title}</span>
+                              {badges[item.href] ? (
+                                <Badge
+                                  variant="outline"
+                                  className="ml-auto h-5 min-w-5 justify-center px-1.5 text-[10px]"
+                                >
+                                  {badges[item.href]}
+                                </Badge>
+                              ) : null}
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -138,7 +155,7 @@ export function MaiaSidebar() {
                 <SidebarMenuItem key={module.title}>
                   <SidebarMenuButton
                     disabled
-                    className="opacity-60"
+                    className="opacity-50"
                     tooltip={`${module.title} — Próximamente`}
                   >
                     <module.icon />

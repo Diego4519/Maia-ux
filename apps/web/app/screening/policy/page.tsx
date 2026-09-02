@@ -1,7 +1,14 @@
+"use client"
+
+import { useState } from "react"
+import { Shield, ToggleLeft, ToggleRight } from "lucide-react"
+
 import { WorkbenchShell } from "@/components/workbench/workbench-shell"
 import { AgentReasoningCard } from "@/components/workbench/agent-reasoning-card"
 import { RiskBadge } from "@/components/maia/risk-badge"
+import { useMaiaToast } from "@/components/maia/maia-toast"
 import { Button } from "@workspace/ui/components/button"
+import { Badge } from "@workspace/ui/components/badge"
 import {
   Card,
   CardContent,
@@ -9,67 +16,135 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { policyRules } from "@/lib/mock-data"
+import { cn } from "@workspace/ui/lib/utils"
 
 export default function PolicyPage() {
-  const primary = policyRules[0]!
+  const [selectedId, setSelectedId] = useState(policyRules[0]!.id)
+  const [enabledRules, setEnabledRules] = useState<string[]>(
+    policyRules.map((r) => r.id)
+  )
+  const { toast } = useMaiaToast()
+  const selected = policyRules.find((r) => r.id === selectedId) ?? policyRules[0]!
+
+  function toggleRule(id: string) {
+    setEnabledRules((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((r) => r !== id)
+        : [...prev, id]
+      const rule = policyRules.find((r) => r.id === id)
+      toast(
+        `Regla "${rule?.name}" ${next.includes(id) ? "activada" : "desactivada"}`,
+        "info"
+      )
+      return next
+    })
+  }
 
   return (
     <WorkbenchShell
-      breadcrumb="MAIA Compliance Hub › Screening Team › Policy"
-      description="Reglas que MAIA aplica al analizar. Cada búsqueda de arriba pasa por estas políticas."
-      actionLabel="Gestionar política"
+      variant="work"
+      tabTitle="Policy"
+      hint="Reglas que MAIA aplica en cada análisis."
     >
-      <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
-        <Card>
-          <CardHeader>
+      <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
+        <Card className="maia-fade-up shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-heading text-base">
               Reglas de riesgo
             </CardTitle>
+            <Badge variant="secondary">
+              {enabledRules.length}/{policyRules.length} activas
+            </Badge>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {policyRules.map((rule) => (
-              <div
-                key={rule.id}
-                className="flex items-center justify-between rounded-lg border px-4 py-3"
-              >
-                <div>
-                  <p className="text-sm font-medium">{rule.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Decisión: {rule.decision}
-                  </p>
+          <CardContent className="maia-stagger space-y-2">
+            {policyRules.map((rule) => {
+              const active = rule.id === selected.id
+              const enabled = enabledRules.includes(rule.id)
+              return (
+                <div
+                  key={rule.id}
+                  className={cn(
+                    "flex items-center justify-between rounded-xl border px-4 py-3.5 transition-all duration-200",
+                    active
+                      ? "border-foreground bg-muted/40 ring-1 ring-foreground/10 shadow-sm"
+                      : "hover:bg-muted/20",
+                    !enabled && "opacity-50"
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(rule.id)}
+                    className="flex-1 text-left"
+                  >
+                    <p className="text-sm font-medium">{rule.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Decisión: {rule.decision}
+                    </p>
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <RiskBadge
+                      level={
+                        rule.criticality === "critical"
+                          ? "high"
+                          : rule.criticality
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleRule(rule.id)}
+                      className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {enabled ? (
+                        <ToggleRight className="size-6 text-foreground" />
+                      ) : (
+                        <ToggleLeft className="size-6" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <RiskBadge
-                  level={
-                    rule.criticality === "critical"
-                      ? "high"
-                      : rule.criticality
-                  }
-                />
-              </div>
-            ))}
+              )
+            })}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="maia-scale-in sticky top-20 shadow-sm">
           <CardHeader>
-            <CardTitle className="font-heading text-base">
-              Regla seleccionada
-            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Shield className="size-4 text-muted-foreground" />
+              <CardTitle className="font-heading text-base">
+                Regla seleccionada
+              </CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="font-medium">{primary.name}</p>
+            <p className="font-medium">{selected.name}</p>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
+              <div className="rounded-lg border bg-muted/20 p-3">
                 <p className="text-muted-foreground">Decisión</p>
-                <p className="font-medium">{primary.decision}</p>
+                <p className="mt-1 font-medium">{selected.decision}</p>
               </div>
-              <div>
+              <div className="rounded-lg border bg-muted/20 p-3">
                 <p className="text-muted-foreground">Confianza mín.</p>
-                <p className="font-medium">95%+</p>
+                <p className="mt-1 font-medium">95%+</p>
               </div>
             </div>
+            <div className="rounded-lg border bg-muted/20 p-3 text-sm">
+              <p className="text-muted-foreground">Impacto estimado</p>
+              <p className="mt-1 font-medium">
+                {selected.criticality === "critical"
+                  ? "Bloqueo automático de onboarding"
+                  : "Revisión humana requerida"}
+              </p>
+            </div>
             <AgentReasoningCard text="La exposición a sanciones activas bloquea el onboarding por defecto. Solo override humano autorizado." />
-            <Button className="w-full">Abrir policy builder</Button>
+            <Button
+              className="w-full shadow-sm"
+              onClick={() =>
+                toast("Policy builder — disponible en fase siguiente", "info")
+              }
+            >
+              Abrir policy builder
+            </Button>
           </CardContent>
         </Card>
       </div>
