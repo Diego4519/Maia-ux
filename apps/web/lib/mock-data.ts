@@ -9,6 +9,25 @@ export interface SubjectProfile {
   tags: string[]
 }
 
+export interface ScoreBreakdownFactor {
+  id: string
+  label: string
+  value: number
+  unit?: "ratio" | "percent" | "flag"
+  weight?: number
+  detail?: string
+}
+
+export interface AdverseMediaItem {
+  id: string
+  title: string
+  source: string
+  date: string
+  snippet: string
+  url?: string
+  sentiment?: "negative" | "neutral" | "positive"
+}
+
 export interface ScreeningMatch {
   id: string
   name: string
@@ -19,6 +38,8 @@ export interface ScreeningMatch {
   source: string
   confidence: number
   decision?: string
+  /** Desglose del motor — real cuando API; tipado desde demo hoy */
+  scoreBreakdown?: ScoreBreakdownFactor[]
 }
 
 export interface ApiAlert {

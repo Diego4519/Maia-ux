@@ -1,4 +1,9 @@
-import type { RiskLevel, ScreeningMatch, SubjectProfile } from "./mock-data"
+import type {
+  AdverseMediaItem,
+  ScreeningMatch,
+  ScoreBreakdownFactor,
+  SubjectProfile,
+} from "./mock-data"
 
 export type SourceCoverageStatus = "found" | "not_found" | "not_screened"
 
@@ -13,6 +18,13 @@ export interface DemoSubject {
   reasoning: string
   searchTerms: string[]
   sourceCoverage: SourceCoverageItem[]
+  adverseMedia?: AdverseMediaItem[]
+}
+
+function breakdown(
+  factors: ScoreBreakdownFactor[]
+): ScoreBreakdownFactor[] {
+  return factors
 }
 
 export const demoSubjects: DemoSubject[] = [
@@ -36,6 +48,40 @@ export const demoSubjects: DemoSubject[] = [
         status: "Pendiente",
         source: "PEP Perú + Medios adversos",
         confidence: 96,
+        scoreBreakdown: breakdown([
+          {
+            id: "name_match",
+            label: "Coincidencia de nombre",
+            value: 0.97,
+            unit: "ratio",
+            weight: 0.35,
+            detail: "Fuzzy + normalización fonética",
+          },
+          {
+            id: "pep",
+            label: "PEP / personas expuestas",
+            value: 1,
+            unit: "flag",
+            weight: 0.3,
+            detail: "Hit en PEP Perú",
+          },
+          {
+            id: "sanctions",
+            label: "Sanciones (OFAC / UE / ONU)",
+            value: 0,
+            unit: "flag",
+            weight: 0.2,
+            detail: "Sin hit",
+          },
+          {
+            id: "adverse_media",
+            label: "Medios adversos",
+            value: 0.88,
+            unit: "ratio",
+            weight: 0.15,
+            detail: "3 menciones relevantes",
+          },
+        ]),
       },
     ],
     reasoning:
@@ -45,6 +91,38 @@ export const demoSubjects: DemoSubject[] = [
       { name: "OFAC SDN", status: "not_found" },
       { name: "Medios adversos", status: "found" },
       { name: "UN Consolidated", status: "not_screened" },
+    ],
+    adverseMedia: [
+      {
+        id: "am-1",
+        title: "Exfuncionario vinculado a investigación de lavado",
+        source: "El Comercio",
+        date: "12/03/2024",
+        snippet:
+          "El nombre aparece en cobertura sobre una investigación preliminar de lavado de activos en el sector público.",
+        url: "https://example.com/noticia-1",
+        sentiment: "negative",
+      },
+      {
+        id: "am-2",
+        title: "Lista de personas de interés en informe parlamentario",
+        source: "La República",
+        date: "28/11/2023",
+        snippet:
+          "Mención en anexo de informe sobre contratos públicos; sin condena firme reportada.",
+        url: "https://example.com/noticia-2",
+        sentiment: "negative",
+      },
+      {
+        id: "am-3",
+        title: "Participación en evento gremial del sector",
+        source: "Gestión",
+        date: "05/06/2022",
+        snippet:
+          "Nota neutra sobre asistencia a foro empresarial; sin hallazgos de riesgo.",
+        url: "https://example.com/noticia-3",
+        sentiment: "neutral",
+      },
     ],
   },
   {
@@ -67,6 +145,37 @@ export const demoSubjects: DemoSubject[] = [
         status: "En revisión",
         source: "PEP Nacional",
         confidence: 72,
+        scoreBreakdown: breakdown([
+          {
+            id: "name_match",
+            label: "Coincidencia de nombre",
+            value: 0.71,
+            unit: "ratio",
+            weight: 0.35,
+          },
+          {
+            id: "pep",
+            label: "PEP / personas expuestas",
+            value: 1,
+            unit: "flag",
+            weight: 0.35,
+            detail: "PEP nacional — homonimia posible",
+          },
+          {
+            id: "sanctions",
+            label: "Sanciones (OFAC / UE / ONU)",
+            value: 0,
+            unit: "flag",
+            weight: 0.2,
+          },
+          {
+            id: "adverse_media",
+            label: "Medios adversos",
+            value: 0,
+            unit: "flag",
+            weight: 0.1,
+          },
+        ]),
       },
     ],
     reasoning:
@@ -77,6 +186,7 @@ export const demoSubjects: DemoSubject[] = [
       { name: "Medios adversos", status: "not_found" },
       { name: "UN Consolidated", status: "not_found" },
     ],
+    adverseMedia: [],
   },
   {
     profile: {
@@ -98,6 +208,37 @@ export const demoSubjects: DemoSubject[] = [
         status: "Pendiente",
         source: "Sanciones UE",
         confidence: 78,
+        scoreBreakdown: breakdown([
+          {
+            id: "name_match",
+            label: "Coincidencia de nombre",
+            value: 0.92,
+            unit: "ratio",
+            weight: 0.3,
+          },
+          {
+            id: "pep",
+            label: "PEP / personas expuestas",
+            value: 0,
+            unit: "flag",
+            weight: 0.15,
+          },
+          {
+            id: "sanctions",
+            label: "Sanciones (OFAC / UE / ONU)",
+            value: 1,
+            unit: "flag",
+            weight: 0.4,
+            detail: "Posible hit UE — validar entidad",
+          },
+          {
+            id: "adverse_media",
+            label: "Medios adversos",
+            value: 0.4,
+            unit: "ratio",
+            weight: 0.15,
+          },
+        ]),
       },
     ],
     reasoning:
@@ -107,6 +248,17 @@ export const demoSubjects: DemoSubject[] = [
       { name: "EU Sanctions", status: "found" },
       { name: "OFAC SDN", status: "not_found" },
       { name: "Medios adversos", status: "not_screened" },
+    ],
+    adverseMedia: [
+      {
+        id: "am-and-1",
+        title: "Empresa mencionada en alerta de compliance regional",
+        source: "Bloomberg Línea",
+        date: "03/01/2025",
+        snippet:
+          "Nota sobre posibles vínculos con contrapartes sancionadas; la empresa negó relación comercial.",
+        sentiment: "negative",
+      },
     ],
   },
   {
@@ -128,6 +280,7 @@ export const demoSubjects: DemoSubject[] = [
       { name: "Medios adversos", status: "not_found" },
       { name: "UN Consolidated", status: "not_found" },
     ],
+    adverseMedia: [],
   },
   {
     profile: {
@@ -149,6 +302,37 @@ export const demoSubjects: DemoSubject[] = [
         status: "Pendiente",
         source: "OFAC SDN",
         confidence: 89,
+        scoreBreakdown: breakdown([
+          {
+            id: "name_match",
+            label: "Coincidencia de nombre",
+            value: 0.91,
+            unit: "ratio",
+            weight: 0.3,
+          },
+          {
+            id: "pep",
+            label: "PEP / personas expuestas",
+            value: 0,
+            unit: "flag",
+            weight: 0.15,
+          },
+          {
+            id: "sanctions",
+            label: "Sanciones (OFAC / UE / ONU)",
+            value: 1,
+            unit: "flag",
+            weight: 0.45,
+            detail: "Hit OFAC SDN",
+          },
+          {
+            id: "adverse_media",
+            label: "Medios adversos",
+            value: 0.2,
+            unit: "ratio",
+            weight: 0.1,
+          },
+        ]),
       },
     ],
     reasoning:
@@ -159,6 +343,7 @@ export const demoSubjects: DemoSubject[] = [
       { name: "Medios adversos", status: "not_found" },
       { name: "UN Consolidated", status: "not_found" },
     ],
+    adverseMedia: [],
   },
   {
     profile: {
@@ -179,6 +364,7 @@ export const demoSubjects: DemoSubject[] = [
       { name: "Medios adversos", status: "not_found" },
       { name: "UN Consolidated", status: "not_found" },
     ],
+    adverseMedia: [],
   },
   {
     profile: {
@@ -200,6 +386,37 @@ export const demoSubjects: DemoSubject[] = [
         status: "En revisión",
         source: "Medios adversos",
         confidence: 68,
+        scoreBreakdown: breakdown([
+          {
+            id: "name_match",
+            label: "Coincidencia de nombre",
+            value: 0.85,
+            unit: "ratio",
+            weight: 0.25,
+          },
+          {
+            id: "pep",
+            label: "PEP / personas expuestas",
+            value: 0,
+            unit: "flag",
+            weight: 0.15,
+          },
+          {
+            id: "sanctions",
+            label: "Sanciones (OFAC / UE / ONU)",
+            value: 0,
+            unit: "flag",
+            weight: 0.2,
+          },
+          {
+            id: "adverse_media",
+            label: "Medios adversos",
+            value: 0.78,
+            unit: "ratio",
+            weight: 0.4,
+            detail: "Cobertura reciente sin sentencia",
+          },
+        ]),
       },
     ],
     reasoning:
@@ -209,6 +426,26 @@ export const demoSubjects: DemoSubject[] = [
       { name: "OFAC SDN", status: "not_found" },
       { name: "Medios adversos", status: "found" },
       { name: "UN Consolidated", status: "not_found" },
+    ],
+    adverseMedia: [
+      {
+        id: "am-gfp-1",
+        title: "Grupo financiero bajo escrutinio por operaciones offshore",
+        source: "Semana Económica",
+        date: "14/08/2024",
+        snippet:
+          "Reportaje sobre estructuras offshore; el grupo indicó que opera bajo regulación local.",
+        sentiment: "negative",
+      },
+      {
+        id: "am-gfp-2",
+        title: "Respuesta institucional ante reportes de prensa",
+        source: "Andina",
+        date: "16/08/2024",
+        snippet:
+          "Comunicado oficial desmintiendo irregularidades; sin investigación formal citada.",
+        sentiment: "neutral",
+      },
     ],
   },
   {
@@ -231,6 +468,37 @@ export const demoSubjects: DemoSubject[] = [
         status: "En revisión",
         source: "PEP indirecto",
         confidence: 55,
+        scoreBreakdown: breakdown([
+          {
+            id: "name_match",
+            label: "Coincidencia de nombre",
+            value: 0.62,
+            unit: "ratio",
+            weight: 0.3,
+          },
+          {
+            id: "pep",
+            label: "PEP / personas expuestas",
+            value: 0.55,
+            unit: "ratio",
+            weight: 0.4,
+            detail: "Vínculo indirecto con PEP",
+          },
+          {
+            id: "sanctions",
+            label: "Sanciones (OFAC / UE / ONU)",
+            value: 0,
+            unit: "flag",
+            weight: 0.2,
+          },
+          {
+            id: "adverse_media",
+            label: "Medios adversos",
+            value: 0,
+            unit: "flag",
+            weight: 0.1,
+          },
+        ]),
       },
     ],
     reasoning:
@@ -241,6 +509,7 @@ export const demoSubjects: DemoSubject[] = [
       { name: "Medios adversos", status: "not_found" },
       { name: "UN Consolidated", status: "not_screened" },
     ],
+    adverseMedia: [],
   },
 ]
 
@@ -253,7 +522,9 @@ export function findDemoSubject(query: string): DemoSubject | null {
       (s) =>
         s.profile.name.toLowerCase().includes(normalized) ||
         s.profile.document.toLowerCase().includes(normalized) ||
-        s.searchTerms.some((t) => t.includes(normalized) || normalized.includes(t))
+        s.searchTerms.some(
+          (t) => t.includes(normalized) || normalized.includes(t)
+        )
     ) ?? null
   )
 }
