@@ -1,44 +1,44 @@
 "use client"
 
 import Link from "next/link"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Search, Shield } from "lucide-react"
+import { RefreshCw, Search, TriangleAlert } from "lucide-react"
 
 import { WorkbenchShell } from "@/components/workbench/workbench-shell"
 import { ScreeningSetSelector } from "@/components/workbench/screening-set-selector"
-import { DecisionPanel } from "@/components/workbench/decision-panel"
+import {
+  DecisionPanel,
+  type DecisionAction,
+  type DecisionExtras,
+  type DecisionResult,
+} from "@/components/workbench/decision-panel"
 import { FlowStepper } from "@/components/workbench/flow-stepper"
 import { EmptyState } from "@/components/maia/empty-state"
-import { RiskBadge } from "@/components/maia/risk-badge"
+import { PersonDetail } from "@/components/maia/person-detail"
 import { useMaiaToast } from "@/components/maia/maia-toast"
 import { useWorkbench } from "@/lib/workbench-context"
-import { Badge } from "@workspace/ui/components/badge"
+import { searchScreeningClient } from "@/lib/api/screening"
+import { submitDecisionFeedback } from "@/lib/api/decisions"
+import type { ScreeningSearchResponse } from "@/lib/api/types"
+import type { RiskLevel } from "@/lib/mock-data"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
-import type { ScreeningMatch, SubjectProfile } from "@/lib/mock-data"
-import type { ScreeningSearchResult } from "@/lib/screening-service"
-import { cn } from "@workspace/ui/lib/utils"
+import { Card, CardContent } from "@workspace/ui/components/card"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
-const loadingStages = [
-  { label: "Normalización de nombre", delay: 0 },
-  { label: "PEP · Sanciones · Medios", delay: 300 },
-  { label: "Score de confianza", delay: 600 },
-]
+/** Evita un parpadeo del esqueleto cuando la respuesta es casi inmediata. */
+const MIN_LOADING_MS = 300
 
 function IndividualContent() {
   const searchParams = useSearchParams()
   const query = searchParams.get("q")?.trim() ?? ""
   const hasSearched = query.length > 0
-  const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<ScreeningSearchResult | null>(null)
+  const [loading, setLoading] = useState(hasSearched)
+  const [result, setResult] = useState<ScreeningSearchResponse | null>(null)
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
-  const [loadingStage, setLoadingStage] = useState(0)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [attempt, setAttempt] = useState(0)
+  const [closing, setClosing] = useState(false)
   const { toast } = useMaiaToast()
   const { recordDecision } = useWorkbench()
 
@@ -46,32 +46,35 @@ function IndividualContent() {
     if (!hasSearched) {
       setResult(null)
       setSelectedMatchId(null)
+      setSearchError(null)
+      setLoading(false)
       return
     }
 
     let cancelled = false
     setLoading(true)
-    setLoadingStage(0)
-
-    const stageTimers = loadingStages.map((s, i) =>
-      setTimeout(() => {
-        if (!cancelled) setLoadingStage(i + 1)
-      }, s.delay + 200)
-    )
+    setSearchError(null)
 
     const started = Date.now()
-    fetch(`/api/screening/search?q=${encodeURIComponent(query)}`)
-      .then((response) => response.json())
-      .then(async (data: ScreeningSearchResult) => {
-        const wait = Math.max(0, 1200 - (Date.now() - started))
+    searchScreeningClient(query)
+      .then(async (data) => {
+        const wait = Math.max(0, MIN_LOADING_MS - (Date.now() - started))
         if (wait) await new Promise((r) => setTimeout(r, wait))
         if (!cancelled) {
           setResult(data)
           setSelectedMatchId(data.matches[0]?.id ?? null)
         }
       })
-      .catch(() => {
-        if (!cancelled) setResult(null)
+      .catch((err) => {
+        if (!cancelled) {
+          setResult(null)
+          setSelectedMatchId(null)
+          setSearchError(
+            err instanceof Error
+              ? err.message
+              : "No se pudo completar la búsqueda."
+          )
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -79,20 +82,75 @@ function IndividualContent() {
 
     return () => {
       cancelled = true
-      stageTimers.forEach(clearTimeout)
     }
-  }, [query, hasSearched])
+  }, [query, hasSearched, attempt])
 
-  const profile: SubjectProfile | null = result?.profile ?? null
-  const matches: ScreeningMatch[] = result?.matches ?? []
+  const profile = result?.profile ?? null
+  const matches = result?.matches ?? []
   const primary =
     matches.find((m) => m.id === selectedMatchId) ?? matches[0] ?? null
+  const demoData = result ? (result.mockMode ?? result.source === "mock") : false
+  const caseId = result ? `IND-${result.profile.id.replace("sub-", "")}` : ""
+
+  /** Único camino de decisión: lo usan el panel y el cierre sin coincidencias. */
+  const registerDecision = useCallback(
+    async (
+      action: Exclude<DecisionAction, null>,
+      extras: DecisionExtras,
+      target: { matchId?: string; name: string; riskLevel: RiskLevel }
+    ): Promise<DecisionResult> => {
+      if (!result) throw new Error("No hay un resultado activo.")
+
+      const feedback = await submitDecisionFeedback({
+        caseId,
+        matchId: target.matchId,
+        subjectId: result.profile.id,
+        action,
+        engineAgreement: extras.engineAgreement,
+        comment: extras.comment,
+        riskLevel: target.riskLevel,
+        name: target.name,
+        demo: demoData,
+      })
+
+      const evidenceId = recordDecision({
+        name: target.name,
+        action,
+        riskLevel: target.riskLevel,
+      })
+
+      const msg =
+        action === "accept"
+          ? "Decisión registrada: aceptar con mitigantes"
+          : action === "reject"
+            ? "Decisión registrada: rechazar onboarding"
+            : "Caso escalado a revisión humana"
+
+      toast(
+        feedback.mockMode ? `${msg} (demostración)` : msg,
+        action === "reject"
+          ? "error"
+          : action === "escalate"
+            ? "info"
+            : "success",
+        {
+          action: {
+            label: "Ver evidencia",
+            href: `/screening/evidence?highlight=${evidenceId}`,
+          },
+        }
+      )
+
+      return { mockMode: !!feedback.mockMode, status: feedback.status }
+    },
+    [result, caseId, demoData, recordDecision, toast]
+  )
 
   const activeStep: 1 | 2 | 3 = !hasSearched
     ? 1
     : loading
       ? 2
-      : primary
+      : primary || (result && matches.length === 0)
         ? 3
         : 2
 
@@ -119,141 +177,69 @@ function IndividualContent() {
               description="Escribe un nombre arriba o elige una excepción pendiente."
               action={
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/screening/overview">Ver excepciones pendientes</Link>
+                  <Link href="/screening/overview">
+                    Ver excepciones pendientes
+                  </Link>
                 </Button>
               }
             />
           ) : loading ? (
-            <Card className="maia-fade-in overflow-hidden border-foreground/10 shadow-sm">
-              <CardContent className="space-y-5 py-10">
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="relative flex size-5 items-center justify-center">
-                    <span className="absolute size-5 animate-ping rounded-full bg-foreground/20" />
-                    <Shield className="relative size-5 text-foreground" />
-                  </div>
-                  <span className="font-medium">
-                    MAIA cruzando 7 listas activas…
-                  </span>
+            <Card
+              className="maia-fade-in maia-card overflow-hidden border-0 shadow-none"
+              aria-busy="true"
+            >
+              <CardContent className="space-y-5 py-8">
+                <div role="status" className="space-y-1">
+                  <p className="text-sm font-medium">
+                    Consultando listas y calculando el score…
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Consulta: &quot;{query}&quot;
+                  </p>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Consulta: &quot;{query}&quot;
-                </p>
-                <div className="space-y-3">
-                  {loadingStages.map((stage, i) => (
-                    <div key={stage.label} className="space-y-1.5">
-                      <div className="flex justify-between text-[11px] text-muted-foreground">
-                        <span>{stage.label}</span>
-                        <span
-                          className={cn(
-                            loadingStage > i
-                              ? "font-medium text-emerald-600"
-                              : "maia-pulse-soft"
-                          )}
-                        >
-                          {loadingStage > i ? "OK" : "en curso"}
-                        </span>
-                      </div>
-                      <div
-                        className={cn(
-                          "h-2 rounded-full transition-all duration-500",
-                          loadingStage > i ? "bg-foreground" : "maia-shimmer"
-                        )}
-                        style={{
-                          width: loadingStage > i ? "100%" : `${60 - i * 15}%`,
-                        }}
-                      />
-                    </div>
-                  ))}
+                <div className="space-y-2" aria-hidden>
+                  <Skeleton className="h-6 w-2/3" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+                <div className="flex gap-2" aria-hidden>
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-28" />
+                  <Skeleton className="h-8 w-32" />
+                </div>
+                <div className="space-y-3" aria-hidden>
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
                 </div>
               </CardContent>
             </Card>
-          ) : profile ? (
-            <>
-              <Card className="maia-fade-up shadow-sm">
-                <CardHeader>
-                  <CardTitle className="font-heading text-base">
-                    Resultado del análisis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">
-                        Consulta: &quot;{query}&quot;
-                      </p>
-                      <p className="mt-1.5 font-heading text-lg font-semibold">
-                        {profile.name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {profile.document} · {profile.nationality}
-                      </p>
-                    </div>
-                    <Badge variant="secondary">Normalizado</Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.tags.map((tag) => (
-                      <Badge key={tag} variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="rounded-lg border bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
-                    MAIA analizó {profile.name} en 7 listas activas ·{" "}
-                    {matches.length} coincidencia
-                    {matches.length === 1 ? "" : "s"}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-3">
-                <h3 className="font-heading text-sm font-semibold">
-                  Coincidencias encontradas
-                </h3>
-                {matches.length === 0 ? (
-                  <EmptyState
-                    icon={Shield}
-                    title="Sin coincidencias críticas"
-                    description="Puedes aceptar con monitoreo estándar."
-                  />
-                ) : (
-                  <div className="maia-stagger space-y-2">
-                    {matches.map((match) => {
-                      const selected = match.id === primary?.id
-                      return (
-                        <button
-                          key={match.id}
-                          type="button"
-                          onClick={() => setSelectedMatchId(match.id)}
-                          className={cn(
-                            "flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition-all duration-200",
-                            selected
-                              ? "border-foreground bg-muted/40 ring-1 ring-foreground/10 shadow-sm"
-                              : "border-border hover:bg-muted/20 hover:shadow-sm"
-                          )}
-                        >
-                          <div>
-                            <p className="text-sm font-medium">{match.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {match.source} · {match.confidence}% confianza
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <RiskBadge level={match.riskLevel} />
-                            {match.status === "Pendiente" ? (
-                              <Badge variant="outline">Pendiente</Badge>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">
-                                {match.status}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            </>
+          ) : searchError ? (
+            <EmptyState
+              icon={TriangleAlert}
+              title="No se pudo completar la búsqueda"
+              description={`${searchError} Esto no significa que la persona esté limpia: no hay resultado que mostrar.`}
+              action={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAttempt((n) => n + 1)}
+                >
+                  <RefreshCw className="mr-1.5 size-3.5" aria-hidden />
+                  Reintentar
+                </Button>
+              }
+            />
+          ) : profile && result ? (
+            <PersonDetail
+              query={query}
+              profile={profile}
+              matches={matches}
+              selectedMatchId={selectedMatchId}
+              onSelectMatch={setSelectedMatchId}
+              adverseMedia={result.adverseMedia ?? []}
+              sourceCoverage={result.sourceCoverage}
+              mockMode={demoData}
+            />
           ) : (
             <EmptyState
               icon={Search}
@@ -270,30 +256,55 @@ function IndividualContent() {
               name={primary.name}
               confidence={primary.confidence}
               riskLevel={primary.riskLevel}
-              caseId={`IND-${profile.id.replace("sub-", "")}`}
+              caseId={caseId}
               reasoning={result.reasoning}
               sourceCoverage={result.sourceCoverage}
-              onDecide={(action) => {
-                if (!action || !primary) return
-                const evidenceId = recordDecision({
+              onDecide={(action, extras) =>
+                registerDecision(action, extras, {
+                  matchId: primary.id,
                   name: primary.name,
-                  action,
                   riskLevel: primary.riskLevel,
                 })
-                const msg =
-                  action === "accept"
-                    ? "Decisión registrada: aceptar con mitigantes"
-                    : action === "reject"
-                      ? "Decisión registrada: rechazar onboarding"
-                      : "Caso escalado a revisión humana"
-                toast(msg, action === "reject" ? "error" : action === "escalate" ? "info" : "success", {
-                  action: {
-                    label: "Ver evidencia",
-                    href: `/screening/evidence?highlight=${evidenceId}`,
-                  },
-                })
-              }}
+              }
             />
+          ) : hasSearched && result && !primary && !loading ? (
+            <Card className="border-dashed">
+              <CardContent className="space-y-3 py-8 text-center text-sm text-muted-foreground">
+                <p>
+                  Sin coincidencias críticas. Puedes cerrar con monitoreo
+                  estándar.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={closing}
+                  onClick={async () => {
+                    setClosing(true)
+                    try {
+                      await registerDecision(
+                        "accept",
+                        {},
+                        {
+                          name: result.profile.name,
+                          riskLevel: "low",
+                        }
+                      )
+                    } catch (err) {
+                      toast(
+                        err instanceof Error
+                          ? err.message
+                          : "No se pudo registrar tu decisión.",
+                        "error"
+                      )
+                    } finally {
+                      setClosing(false)
+                    }
+                  }}
+                >
+                  {closing ? "Registrando…" : "Aceptar con monitoreo"}
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <Card className="border-dashed">
               <CardContent className="py-10 text-center text-sm text-muted-foreground">

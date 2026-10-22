@@ -1,6 +1,7 @@
 "use client"
 
 import { AppShell } from "@/components/app-shell/app-shell"
+import { cn } from "@workspace/ui/lib/utils"
 import { AutomationStrip } from "@/components/workbench/automation-strip"
 import { KpiStrip } from "@/components/workbench/kpi-strip"
 import { ScreeningSearchBar } from "@/components/workbench/screening-search-bar"
@@ -20,6 +21,8 @@ interface WorkbenchShellProps {
   showAutomation?: boolean
   showSearch?: boolean
   searchHero?: boolean
+  /** Esta pantalla aún lee datos de demostración (sin API). Se declara en pantalla. */
+  demoData?: boolean
 }
 
 export function WorkbenchShell({
@@ -32,6 +35,7 @@ export function WorkbenchShell({
   showAutomation = false,
   showSearch = false,
   searchHero = false,
+  demoData = false,
 }: WorkbenchShellProps) {
   const isHome = variant === "home"
 
@@ -40,7 +44,7 @@ export function WorkbenchShell({
       title="MAIA Compliance Hub"
       description="Screening Team Workbench"
     >
-      <div className="maia-fade-in space-y-4">
+      <div className="space-y-4">
         {/* Tabs primero — orientación inmediata */}
         <WorkbenchTabs />
 
@@ -50,11 +54,24 @@ export function WorkbenchShell({
             <p className="text-xs text-muted-foreground">
               Screening <span className="mx-1">/</span> {tabTitle}
             </p>
-            <h2 className="font-heading text-xl font-semibold tracking-tight">
+            <h2
+              className={cn(
+                "font-heading font-bold tracking-tight",
+                isHome ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
+              )}
+            >
               {tabTitle}
+              {demoData ? (
+                <span
+                  title="Esta pantalla usa datos de demostración; aún no está conectada al servicio real."
+                  className="ml-2.5 inline-block rounded border px-1.5 py-0.5 align-middle font-sans text-[10px] font-bold uppercase tracking-wide text-muted-foreground"
+                >
+                  Datos de demostración
+                </span>
+              ) : null}
             </h2>
             {hint ? (
-              <p className="mt-0.5 max-w-2xl text-sm text-muted-foreground">
+              <p className="mt-1 max-w-2xl text-sm font-medium text-muted-foreground">
                 {hint}
               </p>
             ) : null}
@@ -72,7 +89,7 @@ export function WorkbenchShell({
         {showKpis ? <KpiStrip /> : null}
         {showAutomation ? <AutomationStrip /> : null}
 
-        <div className="maia-fade-up">{children}</div>
+        <div className="maia-page-enter">{children}</div>
       </div>
     </AppShell>
   )
