@@ -1,6 +1,17 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "MAIA_API_BASE_URL",
+    "MAIA_API_TOKEN",
+    "MAIA_USE_MOCK",
+    "MAIA_SCREENING_SEARCH_PATH",
+    "MAIA_DECISIONS_FEEDBACK_PATH",
+    "MONGODB_URI",
+    "MONGODB_DB",
+    "NEXT_PUBLIC_MAIA_API_BASE_URL",
+    "NEXT_PUBLIC_MAIA_USE_MOCK"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
