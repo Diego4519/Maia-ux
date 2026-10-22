@@ -24,7 +24,7 @@ export function WorkbenchAction({ label }: WorkbenchActionProps) {
 
   return (
     <Button
-      className="shrink-0 shadow-sm transition-transform active:scale-[0.98]"
+      className="maia-btn-press shrink-0 shadow-sm"
       onClick={handleClick}
       disabled={loading}
     >

@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useState, type CSSProperties } from "react"
 import { useSearchParams } from "next/navigation"
 import {
   Download,
@@ -56,7 +56,7 @@ function EvidenceContent() {
     setTimeout(() => {
       setDownloading(false)
       setDownloaded(true)
-      toast("Paquete de evidencia descargado (PDF + XLSX)")
+      toast("Paquete de evidencia generado (PDF + XLSX) — demo")
     }, 1500)
   }
 
@@ -64,6 +64,7 @@ function EvidenceContent() {
     <WorkbenchShell
       variant="work"
       tabTitle="Evidence"
+      demoData
       hint="Historial inmutable. Lo que existió al momento del screening."
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
@@ -88,11 +89,11 @@ function EvidenceContent() {
                       setDownloaded(false)
                     }}
                     className={cn(
-                      "flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition-all duration-200",
+                      "flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       active
                         ? "border-foreground bg-muted/40 ring-1 ring-foreground/10 shadow-sm"
                         : "hover:bg-muted/20",
-                      isNew && !active && "border-emerald-200/60"
+                      isNew && "maia-highlight-new"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -102,10 +103,14 @@ function EvidenceContent() {
                       <div>
                         <p className="text-sm font-medium">
                           {item.caseNumber} — {item.name}
+                          {isNew ? (
+                            <Badge variant="secondary" className="ml-2 text-[10px]">
+                              NUEVO
+                            </Badge>
+                          ) : null}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {item.mode} · {item.date}
-                          {isNew ? " · Nuevo" : ""}
                         </p>
                       </div>
                     </div>
@@ -118,7 +123,7 @@ function EvidenceContent() {
         </div>
 
         {selected ? (
-          <Card className="maia-scale-in sticky top-20 shadow-sm">
+          <Card key={selected.id} className="maia-scale-in sticky top-20 shadow-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="font-heading text-base">
@@ -151,7 +156,11 @@ function EvidenceContent() {
                   Timeline del caso
                 </p>
                 {evidenceTimeline.map((item, i) => (
-                  <div key={item.step} className="flex gap-3 py-2">
+                  <div
+                    key={item.step}
+                    style={{ "--i": i } as CSSProperties}
+                    className="maia-enter flex gap-3 py-2"
+                  >
                     <div className="flex flex-col items-center">
                       <span
                         className={cn(

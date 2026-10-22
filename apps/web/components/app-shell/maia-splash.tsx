@@ -27,11 +27,11 @@ export function MaiaSplash() {
       setStep((s) => Math.min(s + 1, bootSteps.length - 1))
     }, 450)
 
-    const exitTimer = setTimeout(() => setExiting(true), 2000)
+    const exitTimer = setTimeout(() => setExiting(true), 2600)
     const hideTimer = setTimeout(() => {
       if (!force) sessionStorage.setItem(BOOT_KEY, "1")
       setVisible(false)
-    }, 2500)
+    }, 3100)
 
     return () => {
       clearInterval(stepInterval)
@@ -44,7 +44,7 @@ export function MaiaSplash() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
+      className="maia-splash-bg fixed inset-0 z-[100] flex flex-col items-center justify-center"
       style={
         exiting
           ? { animation: "maia-boot-out 0.45s ease-in forwards" }

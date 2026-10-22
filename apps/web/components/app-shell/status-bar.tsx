@@ -7,6 +7,7 @@ import { Bell, Circle, Command, HelpCircle, RotateCcw } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { useMaiaToast } from "@/components/maia/maia-toast"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { useWorkbench } from "@/lib/workbench-context"
 
 export function StatusBar({
@@ -40,13 +41,15 @@ export function StatusBar({
 
   return (
     <div className="flex flex-1 items-center justify-end gap-1 sm:gap-2">
-      <div className="hidden items-center gap-1.5 rounded-full border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground md:flex">
+      <div className="flex items-center gap-1.5 rounded-full border bg-muted/40 px-2.5 py-1 text-xs text-muted-foreground">
         <span className="relative flex size-2">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400/60" />
+          <span className="maia-live-dot absolute inline-flex size-full rounded-full bg-emerald-400/60" />
           <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
         </span>
         MAIA online
       </div>
+
+      <ThemeToggle />
 
       <Button
         variant="ghost"

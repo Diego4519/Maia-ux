@@ -10,8 +10,9 @@ function ThemeProvider({
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="system"
-      enableSystem
+      defaultTheme="light"
+      storageKey="maia-theme"
+      enableSystem={false}
       disableTransitionOnChange
       {...props}
     >

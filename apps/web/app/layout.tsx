@@ -9,17 +9,22 @@ import { cn } from "@workspace/ui/lib/utils"
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-heading",
-  weight: ["500", "600", "700"],
+  weight: ["600", "700", "800"],
 })
 
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
+  weight: ["500", "600", "700"],
 })
 
 export const metadata = {
   title: "MAIA Compliance Hub",
   description: "Plataforma de screening y cumplimiento AML",
+}
+
+export const viewport = {
+  colorScheme: "light dark",
 }
 
 export default function RootLayout({

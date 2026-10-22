@@ -47,6 +47,7 @@ export default function SourcesPage() {
     <WorkbenchShell
       variant="work"
       tabTitle="Sources"
+      demoData
       hint="Listas que MAIA consulta al analizar."
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
@@ -65,8 +66,9 @@ export default function SourcesPage() {
                 <div
                   key={source.id}
                   className={cn(
-                    "flex items-center justify-between rounded-xl border px-4 py-3.5 transition-all duration-200 hover:shadow-sm",
-                    okIds.includes(source.id) && "border-emerald-200",
+                    "flex items-center justify-between rounded-xl border px-4 py-3.5 transition-[border-color,box-shadow,opacity] duration-200 hover:shadow-sm",
+                    okIds.includes(source.id) &&
+                      "border-emerald-200 dark:border-emerald-800",
                     source.status === "inactive" && "opacity-60"
                   )}
                 >
@@ -93,7 +95,7 @@ export default function SourcesPage() {
                       variant="outline"
                       className={cn(
                         okIds.includes(source.id) &&
-                          "border-emerald-200 text-emerald-700",
+                          "border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-300",
                         source.status === "inactive" && "text-muted-foreground"
                       )}
                     >
@@ -108,7 +110,9 @@ export default function SourcesPage() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          className="min-w-16"
                           disabled={testingId === source.id}
+                          aria-label={`Probar conexión de ${source.name}`}
                           onClick={() => testSource(source.id, source.name)}
                         >
                           {testingId === source.id ? (
@@ -121,6 +125,7 @@ export default function SourcesPage() {
                           size="sm"
                           variant="ghost"
                           disabled={syncingId === source.id}
+                          aria-label={`Sincronizar ${source.name}`}
                           onClick={() => syncSource(source.id, source.name)}
                         >
                           {syncingId === source.id ? (

@@ -27,23 +27,22 @@ export default function PolicyPage() {
   const selected = policyRules.find((r) => r.id === selectedId) ?? policyRules[0]!
 
   function toggleRule(id: string) {
-    setEnabledRules((prev) => {
-      const next = prev.includes(id)
-        ? prev.filter((r) => r !== id)
-        : [...prev, id]
-      const rule = policyRules.find((r) => r.id === id)
-      toast(
-        `Regla "${rule?.name}" ${next.includes(id) ? "activada" : "desactivada"}`,
-        "info"
-      )
-      return next
-    })
+    const next = enabledRules.includes(id)
+      ? enabledRules.filter((r) => r !== id)
+      : [...enabledRules, id]
+    const rule = policyRules.find((r) => r.id === id)
+    setEnabledRules(next)
+    toast(
+      `Regla "${rule?.name}" ${next.includes(id) ? "activada" : "desactivada"}`,
+      "info"
+    )
   }
 
   return (
     <WorkbenchShell
       variant="work"
       tabTitle="Policy"
+      demoData
       hint="Reglas que MAIA aplica en cada análisis."
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
@@ -64,7 +63,7 @@ export default function PolicyPage() {
                 <div
                   key={rule.id}
                   className={cn(
-                    "flex items-center justify-between rounded-xl border px-4 py-3.5 transition-all duration-200",
+                    "flex items-center justify-between rounded-xl border px-4 py-3.5 transition-[background-color,border-color,box-shadow,opacity] duration-200",
                     active
                       ? "border-foreground bg-muted/40 ring-1 ring-foreground/10 shadow-sm"
                       : "hover:bg-muted/20",
@@ -74,7 +73,7 @@ export default function PolicyPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedId(rule.id)}
-                    className="flex-1 text-left"
+                    className="flex-1 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <p className="text-sm font-medium">{rule.name}</p>
                     <p className="text-xs text-muted-foreground">
@@ -91,8 +90,11 @@ export default function PolicyPage() {
                     />
                     <button
                       type="button"
+                      role="switch"
+                      aria-checked={enabled}
+                      aria-label={`Regla ${rule.name}`}
                       onClick={() => toggleRule(rule.id)}
-                      className="text-muted-foreground transition-colors hover:text-foreground"
+                      className="rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {enabled ? (
                         <ToggleRight className="size-6 text-foreground" />
@@ -107,7 +109,7 @@ export default function PolicyPage() {
           </CardContent>
         </Card>
 
-        <Card className="maia-scale-in sticky top-20 shadow-sm">
+        <Card key={selected.id} className="maia-scale-in sticky top-20 shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Shield className="size-4 text-muted-foreground" />

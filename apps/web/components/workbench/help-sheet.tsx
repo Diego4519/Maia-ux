@@ -7,8 +7,10 @@ import { Button } from "@workspace/ui/components/button"
 
 const shortcuts = [
   { keys: "⌘K", desc: "Buscar persona o ir a un tab" },
+  { keys: "D", desc: "Alternar modo claro / oscuro" },
   { keys: "Enter", desc: "Confirmar búsqueda" },
   { keys: "Esc", desc: "Cerrar panel de búsqueda" },
+  { keys: "?", desc: "Abrir esta ayuda" },
 ]
 
 export function HelpSheet({

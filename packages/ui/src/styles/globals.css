@@ -1,0 +1,547 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../../../components/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+@theme inline {
+    --font-heading: var(--font-heading, var(--font-sans));
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+    --font-sans: var(--font-sans);
+}
+
+:root {
+    color-scheme: light;
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.45 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+    --maia-icon-tile-bg: oklch(0.96 0 0);
+    --maia-icon-tile-fg: oklch(0.28 0 0);
+    --maia-icon-tile-border: oklch(0.88 0 0);
+}
+
+.dark {
+    color-scheme: dark;
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.922 0 0);
+    --sidebar-primary-foreground: oklch(0.205 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+    --maia-icon-tile-bg: oklch(0.28 0 0);
+    --maia-icon-tile-fg: oklch(0.93 0 0);
+    --maia-icon-tile-border: oklch(1 0 0 / 14%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-medium;
+  }
+  h1, h2, h3, h4, .font-heading {
+    @apply font-semibold tracking-tight;
+  }
+  p, span, label {
+    @apply font-medium;
+  }
+  .text-muted-foreground {
+    font-weight: 500;
+  }
+}
+
+@keyframes maia-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes maia-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes maia-scale-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes maia-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes maia-progress {
+  from { width: 0%; }
+}
+
+@keyframes maia-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@keyframes maia-boot-out {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+@keyframes maia-brand-in {
+  from { opacity: 0; letter-spacing: 0.4em; transform: translateY(8px); }
+  to { opacity: 1; letter-spacing: 0.12em; transform: translateY(0); }
+}
+
+@keyframes maia-ring {
+  0% { transform: scale(0.85); opacity: 0.5; }
+  70% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+
+@keyframes maia-slide-right {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes maia-toast-in {
+  from { opacity: 0; transform: translateX(24px) scale(0.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes maia-toast-out {
+  to { opacity: 0; transform: translateX(24px) scale(0.96); }
+}
+
+@keyframes maia-count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes maia-glow {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.205 0 0 / 0); }
+  50% { box-shadow: 0 0 0 4px oklch(0.205 0 0 / 0.06); }
+}
+
+@keyframes maia-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@layer utilities {
+  /* Utilidades heredadas alineadas a los tokens de movimiento (var(--maia-*)). */
+  .maia-fade-up { animation: maia-fade-up var(--maia-dur-base) var(--maia-ease-out) both; }
+  .maia-fade-in { animation: maia-fade-in var(--maia-dur-base) var(--maia-ease-out) both; }
+  .maia-scale-in { animation: maia-scale-in var(--maia-dur-base) var(--maia-ease-out) both; }
+  .maia-stagger > * { animation: maia-fade-up var(--maia-dur-base) var(--maia-ease-out) both; }
+  .maia-stagger > *:nth-child(1) { animation-delay: 0.04s; }
+  .maia-stagger > *:nth-child(2) { animation-delay: 0.085s; }
+  .maia-stagger > *:nth-child(3) { animation-delay: 0.13s; }
+  .maia-stagger > *:nth-child(4) { animation-delay: 0.175s; }
+  .maia-stagger > *:nth-child(n+5) { animation-delay: 0.22s; }
+  .maia-shimmer {
+    background: linear-gradient(90deg, var(--muted) 25%, var(--accent) 50%, var(--muted) 75%);
+    background-size: 200% 100%;
+    animation: maia-shimmer 1.4s ease-in-out infinite;
+  }
+  .maia-progress-fill { animation: maia-progress 0.8s ease-out both; }
+  .maia-pulse-soft { animation: maia-pulse-soft 1.6s ease-in-out infinite; }
+  .maia-brand-in { animation: maia-brand-in 0.7s ease-out both; }
+  .maia-ring::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border: 1px solid currentColor;
+    border-radius: 9999px;
+    animation: maia-ring 1.8s ease-out infinite;
+  }
+  .maia-slide-right { animation: maia-slide-right var(--maia-dur-base) var(--maia-ease-out) both; }
+  .maia-app-canvas {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, var(--muted), transparent),
+      radial-gradient(circle at 1px 1px, color-mix(in oklch, var(--border) 35%, transparent) 1px, transparent 0);
+    background-size: 100% 100%, 24px 24px;
+  }
+  .dark .maia-app-canvas {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.22 0 0), transparent),
+      radial-gradient(circle at 1px 1px, oklch(1 0 0 / 6%) 1px, transparent 0);
+  }
+  .maia-toast-in { animation: maia-toast-in var(--maia-dur-base) var(--maia-ease-out) both; }
+  .maia-toast-out { animation: maia-toast-out var(--maia-dur-fast) ease-in forwards; }
+  .maia-count-up { animation: maia-count-up var(--maia-dur-base) var(--maia-ease-out) both; }
+  .maia-glow { animation: none; }
+  .maia-glass {
+    background: color-mix(in oklch, var(--background) 72%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .maia-interactive {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .maia-interactive:hover {
+    box-shadow: 0 4px 12px oklch(0 0 0 / 8%);
+  }
+  .dark .maia-interactive:hover {
+    box-shadow: 0 4px 12px oklch(0 0 0 / 35%);
+  }
+  .maia-interactive:active { transform: translateY(0) scale(0.99); }
+  .maia-scan-line { position: relative; overflow: hidden; }
+  .maia-scan-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--foreground) 15%, transparent), transparent);
+    animation: maia-scan 2s ease-in-out infinite;
+  }
+  .maia-card {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--card-foreground);
+    box-shadow: 0 1px 2px oklch(0 0 0 / 4%), 0 4px 16px oklch(0 0 0 / 3%);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .dark .maia-card {
+    box-shadow: 0 1px 2px oklch(0 0 0 / 25%), 0 4px 16px oklch(0 0 0 / 20%);
+  }
+  .maia-card:hover {
+    box-shadow: 0 2px 4px oklch(0 0 0 / 5%), 0 8px 24px oklch(0 0 0 / 6%);
+  }
+  .dark .maia-card:hover {
+    box-shadow: 0 2px 4px oklch(0 0 0 / 30%), 0 8px 24px oklch(0 0 0 / 35%);
+  }
+  .maia-hero-search {
+    background: var(--card);
+    box-shadow: 0 1px 3px oklch(0 0 0 / 5%), 0 8px 32px oklch(0 0 0 / 6%);
+    transition: box-shadow 0.3s ease;
+  }
+  .dark .maia-hero-search {
+    box-shadow: 0 1px 3px oklch(0 0 0 / 25%), 0 8px 32px oklch(0 0 0 / 30%);
+  }
+  .maia-hero-search:focus-within {
+    box-shadow: 0 2px 8px oklch(0 0 0 / 6%), 0 12px 40px oklch(0 0 0 / 8%);
+  }
+  .dark .maia-hero-search:focus-within {
+    box-shadow: 0 2px 8px oklch(0 0 0 / 30%), 0 12px 40px oklch(0 0 0 / 40%);
+  }
+  .maia-risk-high { border-left: 3px solid oklch(0.577 0.245 27.325); }
+  .maia-risk-medium { border-left: 3px solid oklch(0.75 0.15 75); }
+  .maia-risk-low { border-left: 3px solid oklch(0.65 0.15 145); }
+  .maia-tab-active::after {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--foreground);
+    animation: maia-fade-in 0.25s ease-out both;
+  }
+  .maia-step-num {
+    display: flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: var(--muted);
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+  }
+  .maia-header-glass {
+    background: color-mix(in oklch, var(--background) 85%, transparent);
+    backdrop-filter: blur(12px) saturate(1.2);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    border-bottom: 1px solid var(--border);
+  }
+  .maia-panel-accent::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--border), var(--foreground), var(--border));
+  }
+  .maia-splash-bg {
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 40%, var(--muted), var(--background));
+  }
+  .maia-page-enter {
+    animation: maia-page-enter var(--maia-dur-base) var(--maia-ease-out) both;
+  }
+  .maia-highlight-new {
+    animation: maia-highlight-pulse 2s ease-in-out 2;
+    border-color: color-mix(in oklch, var(--foreground) 45%, transparent) !important;
+    background: color-mix(in oklch, var(--muted) 70%, transparent);
+  }
+  .maia-decision-pop {
+    animation: maia-decision-pop 0.35s var(--maia-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+  }
+  .maia-stat-hero {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    animation: maia-count-up 0.6s ease-out both;
+  }
+  .maia-btn-press {
+    transition:
+      transform var(--maia-dur-fast) var(--maia-ease-out),
+      box-shadow var(--maia-dur-fast) var(--maia-ease-out),
+      background-color var(--maia-dur-fast) var(--maia-ease-out),
+      border-color var(--maia-dur-fast) var(--maia-ease-out),
+      color var(--maia-dur-fast) var(--maia-ease-out);
+  }
+  .maia-btn-press:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  .maia-live-dot {
+    animation: maia-pulse-soft 2s ease-in-out 3;
+  }
+  .maia-icon-tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--maia-icon-tile-border);
+    background: var(--maia-icon-tile-bg);
+    color: var(--maia-icon-tile-fg);
+    transition:
+      background-color var(--maia-dur-fast) var(--maia-ease-out),
+      box-shadow var(--maia-dur-fast) var(--maia-ease-out),
+      border-color var(--maia-dur-fast) var(--maia-ease-out);
+  }
+  .maia-icon-tile svg {
+    flex-shrink: 0;
+    color: var(--maia-icon-tile-fg);
+    stroke: currentColor;
+    fill: none;
+  }
+  .group:hover .maia-icon-tile,
+  .maia-icon-tile-hover:hover .maia-icon-tile {
+    background: oklch(0.92 0 0);
+    border-color: oklch(0.82 0 0);
+    box-shadow: 0 4px 12px oklch(0 0 0 / 8%);
+  }
+  .dark .group:hover .maia-icon-tile,
+  .dark .maia-icon-tile-hover:hover .maia-icon-tile {
+    background: oklch(0.36 0 0);
+    border-color: oklch(1 0 0 / 22%);
+    box-shadow: 0 4px 12px oklch(0 0 0 / 40%);
+  }
+  .maia-objective-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.625rem;
+    padding: 1.25rem 1rem;
+    min-height: 9.5rem;
+    justify-content: center;
+  }
+  .maia-list-enter > * {
+    animation: maia-enter var(--maia-dur-base) var(--maia-ease-out) both;
+  }
+  .maia-list-enter > *:nth-child(1) { animation-delay: 0.04s; }
+  .maia-list-enter > *:nth-child(2) { animation-delay: 0.085s; }
+  .maia-list-enter > *:nth-child(3) { animation-delay: 0.13s; }
+  .maia-list-enter > *:nth-child(4) { animation-delay: 0.175s; }
+  .maia-list-enter > *:nth-child(n+5) { animation-delay: 0.22s; }
+  .maia-tab-link {
+    transition: background-color var(--maia-dur-fast) var(--maia-ease-out), color var(--maia-dur-fast) var(--maia-ease-out);
+  }
+}
+
+@keyframes maia-page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes maia-highlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--foreground) 22%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in oklch, var(--foreground) 0%, transparent); }
+}
+
+@keyframes maia-decision-pop {
+  0% { transform: scale(0.94); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes maia-tab-pop {
+  0% { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Motion tokens (shared) ---- */
+:root {
+  --maia-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --maia-dur-fast: 150ms;
+  --maia-dur-base: 260ms;
+  --maia-dur-slow: 600ms;
+  --maia-stagger-step: 45ms;
+  /* Todas las utilidades `transition` de Tailwind/Shadcn usan la misma curva. */
+  --default-transition-timing-function: var(--maia-ease-out);
+}
+
+@keyframes maia-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes maia-bar-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@layer utilities {
+  /* Entrada corta; con --i forma un stagger acotado (máx. 5 pasos). */
+  .maia-enter {
+    animation: maia-enter var(--maia-dur-base) var(--maia-ease-out) both;
+    animation-delay: calc(min(var(--i, 0), 5) * var(--maia-stagger-step));
+  }
+  /* Barra que se llena desde la izquierda; el ancho final va en style. */
+  .maia-bar-fill {
+    transform-origin: left center;
+    animation: maia-bar-fill var(--maia-dur-slow) var(--maia-ease-out) both;
+    animation-delay: calc(140ms + min(var(--i, 0), 5) * 70ms);
+  }
+}
+
+/* Texto seleccionado acorde al tema neutro */
+::selection {
+  background: color-mix(in oklch, var(--foreground) 16%, transparent);
+}
+
+/* ---- Movimiento reducido: menos desplazamiento, se conserva el estado ---- */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes maia-fade-up { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-scale-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-slide-right { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-page-enter { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-count-up { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-toast-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-decision-pop { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-enter { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-bar-fill { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes maia-tab-pop { from { opacity: 0.6; } to { opacity: 1; } }
+
+  .maia-shimmer,
+  .maia-scan-line::after,
+  .maia-ring::before,
+  .maia-glow,
+  .maia-pulse-soft,
+  .maia-live-dot,
+  .maia-highlight-new {
+    animation: none;
+  }
+  .animate-ping {
+    animation: none;
+  }
+  .group:hover .maia-icon-tile,
+  .maia-icon-tile-hover:hover .maia-icon-tile {
+    transform: none;
+  }
+  /* Las transiciones de estado siguen ocurriendo, pero sin desplazamiento perceptible. */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

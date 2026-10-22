@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useState, type CSSProperties } from "react"
 import {
   CheckCircle2,
   FileSpreadsheet,
@@ -73,6 +73,7 @@ export default function MassivePage() {
     <WorkbenchShell
       variant="work"
       tabTitle="Massive"
+      demoData
       hint="Carga un lote. MAIA procesa todo y solo te muestra las excepciones."
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
@@ -86,9 +87,9 @@ export default function MassivePage() {
             <CardContent className="space-y-4">
               <div
                 className={cn(
-                  "flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-all duration-300",
+                  "flex min-h-56 flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-[border-color,background-color] duration-200",
                   dragOver
-                    ? "border-foreground bg-muted/50 scale-[1.01]"
+                    ? "border-foreground bg-muted/50"
                     : "border-border bg-muted/20",
                   phase === "processing" && "border-foreground/30 bg-muted/40"
                 )}
@@ -104,7 +105,7 @@ export default function MassivePage() {
                 }}
               >
                 {phase === "idle" ? (
-                  <>
+                  <div key="idle" className="maia-enter flex flex-col items-center">
                     <Upload
                       className={cn(
                         "mb-3 size-8 transition-colors",
@@ -129,11 +130,11 @@ export default function MassivePage() {
                       <FileSpreadsheet className="mr-2 size-4" />
                       Cargar lote de ejemplo
                     </Button>
-                  </>
+                  </div>
                 ) : phase === "processing" ? (
-                  <div className="w-full max-w-md space-y-4">
+                  <div key="processing" className="maia-enter w-full max-w-md space-y-4">
                     <p className="text-sm font-medium">Procesando lote…</p>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+                    <div className="h-3 overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full rounded-full bg-foreground transition-[width] duration-150"
                         style={{ width: `${progress}%` }}
@@ -157,8 +158,8 @@ export default function MassivePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-2 maia-scale-in">
-                    <CheckCircle2 className="mx-auto size-8 text-emerald-600" />
+                  <div key="done" className="maia-enter space-y-2">
+                    <CheckCircle2 className="mx-auto size-8 text-emerald-600 dark:text-emerald-400" />
                     <p className="text-sm font-medium">Lote listo</p>
                     <p className="text-xs text-muted-foreground">
                       {massiveBatch.exceptions} excepciones elevadas ·{" "}
@@ -222,10 +223,11 @@ export default function MassivePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {exceptions.map((row) => (
+                  {exceptions.map((row, index) => (
                     <TableRow
                       key={row.id}
-                      className="transition-colors hover:bg-muted/40"
+                      style={{ "--i": index } as CSSProperties}
+                      className="maia-enter transition-colors hover:bg-muted/40"
                     >
                       <TableCell className="max-w-[180px] truncate text-xs">
                         {row.raw}
@@ -233,7 +235,7 @@ export default function MassivePage() {
                       <TableCell>
                         <Link
                           href={`/screening/individual?q=${encodeURIComponent(row.structured)}`}
-                          className="font-medium underline-offset-2 hover:underline"
+                          className="rounded-sm font-medium underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           {row.structured}
                         </Link>
@@ -242,7 +244,7 @@ export default function MassivePage() {
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className="border-amber-200 text-amber-800"
+                          className="border-amber-200 text-amber-800 dark:border-amber-800 dark:text-amber-300"
                         >
                           Excepción
                         </Badge>

@@ -24,7 +24,7 @@ export function MetricTile({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-2xl border bg-card/90 px-4 py-4 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
+        "group relative overflow-hidden rounded-2xl border bg-card/90 px-4 py-4 shadow-sm backdrop-blur-sm",
         className
       )}
     >
@@ -48,8 +48,8 @@ export function MetricTile({
           <span
             className={cn(
               "text-[11px] font-medium",
-              trendUp === true && "text-emerald-600",
-              trendUp === false && "text-amber-600",
+              trendUp === true && "text-emerald-700 dark:text-emerald-400",
+              trendUp === false && "text-amber-700 dark:text-amber-400",
               trendUp === undefined && "text-muted-foreground"
             )}
           >

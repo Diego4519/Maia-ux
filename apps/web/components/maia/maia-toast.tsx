@@ -50,15 +50,17 @@ function ToastItem({
   onDismiss: (id: string) => void
 }) {
   const [exiting, setExiting] = useState(false)
+  const [paused, setPaused] = useState(false)
 
   useEffect(() => {
+    if (paused || exiting) return
     const timer = setTimeout(() => setExiting(true), toast.action ? 5000 : 2800)
-    const remove = setTimeout(() => onDismiss(toast.id), toast.action ? 5400 : 3200)
+    const remove = setTimeout(() => onDismiss(toast.id), toast.action ? 5200 : 3000)
     return () => {
       clearTimeout(timer)
       clearTimeout(remove)
     }
-  }, [toast.id, toast.action, onDismiss])
+  }, [toast.id, toast.action, onDismiss, paused, exiting])
 
   const Icon =
     toast.type === "success"
@@ -69,8 +71,12 @@ function ToastItem({
 
   return (
     <div
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
       className={cn(
-        "rounded-xl border bg-card px-4 py-3 text-sm shadow-lg backdrop-blur-sm",
+        "rounded-xl border bg-card px-5 py-4 text-sm shadow-xl backdrop-blur-md maia-glass",
         exiting ? "maia-toast-out" : "maia-toast-in",
         toast.type === "success" && "border-emerald-200/60",
         toast.type === "error" && "border-red-200/60",
@@ -81,13 +87,13 @@ function ToastItem({
         <Icon
           className={cn(
             "mt-0.5 size-4 shrink-0",
-            toast.type === "success" && "text-emerald-600",
-            toast.type === "error" && "text-red-600",
+            toast.type === "success" && "text-emerald-600 dark:text-emerald-400",
+            toast.type === "error" && "text-red-600 dark:text-red-400",
             toast.type === "info" && "text-muted-foreground"
           )}
         />
         <div className="flex-1 space-y-2">
-          <span className="font-medium">{toast.message}</span>
+          <span className="text-base font-semibold leading-snug">{toast.message}</span>
           {toast.action ? (
             <Link
               href={toast.action.href}
@@ -101,7 +107,8 @@ function ToastItem({
         <button
           type="button"
           onClick={() => onDismiss(toast.id)}
-          className="shrink-0 rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+          aria-label="Cerrar notificación"
+          className="shrink-0 rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="size-3.5" />
         </button>
@@ -131,7 +138,11 @@ export function MaiaToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="pointer-events-none fixed bottom-5 right-5 z-[200] flex w-full max-w-sm flex-col gap-2">
+      <div
+        role="status"
+        aria-live="polite"
+        className="pointer-events-none fixed bottom-6 right-6 z-[200] flex w-full max-w-md flex-col gap-3 max-sm:left-4 max-sm:right-4 max-sm:w-auto"
+      >
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">
             <ToastItem toast={t} onDismiss={dismiss} />
