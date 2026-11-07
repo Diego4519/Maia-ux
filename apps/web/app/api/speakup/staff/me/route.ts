@@ -10,8 +10,10 @@ export async function GET() {
     return NextResponse.json({ error: "Sesión no válida" }, { status: 401 })
   }
   return NextResponse.json({
-    name: user.name,
-    role: user.roleLabel,
-    email: user.email,
+    user: {
+      name: user.name,
+      role: user.roleLabel,
+      email: user.email,
+    },
   })
 }

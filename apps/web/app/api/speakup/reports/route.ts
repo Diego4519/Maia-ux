@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     mode: typeof body?.mode === "string" ? body.mode : "anonymous",
     narrative,
     category: typeof body?.category === "string" ? body.category : null,
+    attachments: Array.isArray(body?.attachments) ? body.attachments : [],
   })
 
   return NextResponse.json({

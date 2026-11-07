@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@workspace/ui/components/button"
@@ -39,7 +39,9 @@ export function ReporterWizard() {
   const { toast } = useMaiaToast()
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
   const [touched, setTouched] = useState(false)
+  const sendingRef = useRef(false)
   const [mode, setMode] = useState<Mode>("anonymous")
   const [what, setWhat] = useState("")
   const [when, setWhen] = useState("")
@@ -69,7 +71,10 @@ export function ReporterWizard() {
       setStep(1)
       return
     }
+    if (sendingRef.current) return
+    sendingRef.current = true
     setSubmitting(true)
+    setSendError(null)
     try {
       const res = await fetch("/api/speakup/reports", {
         method: "POST",
@@ -90,10 +95,11 @@ export function ReporterWizard() {
       saveOneTimeSecret(json.trackingCode, json.secret)
       router.push(`/speakup/confirm/${json.trackingCode}`)
     } catch {
-      toast(
-        "No pudimos enviar tu reporte. Tu información sigue aquí. Inténtalo de nuevo.",
-        "error"
-      )
+      const msg =
+        "No pudimos enviar tu reporte. Tu información sigue aquí. No se creó un duplicado."
+      setSendError(msg)
+      toast(msg, "error")
+      sendingRef.current = false
       setSubmitting(false)
     }
   }
@@ -270,6 +276,11 @@ export function ReporterWizard() {
                     />
                   </label>
                 ) : null}
+              </>
+            ) : null}
+
+            {step === 2 ? (
+              <>
                 <div>
                   <p className="mb-1 text-sm font-medium">
                     Adjuntos{" "}
@@ -279,47 +290,58 @@ export function ReporterWizard() {
                   </p>
                   <FileDrop files={files} onChange={setFiles} />
                 </div>
+                <dl className="space-y-2 text-sm">
+                  <Row
+                    label="Modalidad"
+                    value={
+                      mode === "anonymous"
+                        ? "Anónimo"
+                        : "Con identidad confidencial"
+                    }
+                  />
+                  <Row label="Qué ocurrió" value={what || "—"} />
+                  <Row
+                    label="Cuándo / dónde"
+                    value={`${when || "Sin fecha"} · ${where || "Sin lugar"}`}
+                  />
+                  <Row label="Personas" value={people || "—"} />
+                  <Row
+                    label="Categoría"
+                    value={
+                      CATEGORIES.find((c) => c.value === category)?.label ||
+                      "No especificada"
+                    }
+                  />
+                  <Row
+                    label="Adjuntos"
+                    value={
+                      files.length
+                        ? files.map((f) => f.name).join(", ")
+                        : "Ninguno"
+                    }
+                  />
+                </dl>
               </>
-            ) : null}
-
-            {step === 2 ? (
-              <dl className="space-y-2 text-sm">
-                <Row
-                  label="Modalidad"
-                  value={
-                    mode === "anonymous"
-                      ? "Anónimo"
-                      : "Con identidad confidencial"
-                  }
-                />
-                <Row label="Qué ocurrió" value={what || "—"} />
-                <Row
-                  label="Cuándo / dónde"
-                  value={`${when || "Sin fecha"} · ${where || "Sin lugar"}`}
-                />
-                <Row label="Personas" value={people || "—"} />
-                <Row
-                  label="Categoría"
-                  value={
-                    CATEGORIES.find((c) => c.value === category)?.label ||
-                    "No especificada"
-                  }
-                />
-                <Row
-                  label="Adjuntos"
-                  value={
-                    files.length
-                      ? files.map((f) => f.name).join(", ")
-                      : "Ninguno"
-                  }
-                />
-              </dl>
             ) : null}
 
             <p className="text-xs text-muted-foreground">
               Aunque elijas Anónimo, el texto o los archivos podrían contener
               datos que te identifiquen.
             </p>
+            {sendError ? (
+              <div className="space-y-2" role="alert">
+                <p className="text-sm text-destructive">{sendError}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={submit}
+                  disabled={submitting}
+                >
+                  Reintentar
+                </Button>
+              </div>
+            ) : null}
           </CardContent>
           <CardFooter className="justify-between">
             <Button
@@ -336,7 +358,7 @@ export function ReporterWizard() {
               </Button>
             ) : (
               <Button type="button" onClick={submit} disabled={submitting}>
-                {submitting ? "Enviando…" : "Enviar reporte"}
+                {submitting ? "Enviando…" : sendError ? "Reintentar envío" : "Enviar reporte"}
               </Button>
             )}
           </CardFooter>

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import {
   ChevronRight,
@@ -74,6 +75,21 @@ export function MaiaSidebar() {
   const isScreeningActive = pathname.startsWith("/screening")
   const isSpeakUpActive = pathname.startsWith("/bandeja")
   const { pendingAlerts, exceptionQueue } = useWorkbench()
+  const [staff, setStaff] = useState<{
+    name: string
+    role: string
+  } | null>(null)
+
+  useEffect(() => {
+    fetch("/api/speakup/staff/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.user) {
+          setStaff({ name: json.user.name, role: json.user.role })
+        }
+      })
+      .catch(() => undefined)
+  }, [])
 
   const badges: Record<string, number | undefined> = {
     "/screening/overview": exceptionQueue.length || undefined,
@@ -216,12 +232,22 @@ export function MaiaSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg">
               <Avatar className="size-8 rounded-lg">
-                <AvatarFallback className="rounded-lg">DB</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {staff
+                    ? staff.name
+                        .split(" ")
+                        .map((part) => part[0])
+                        .join("")
+                        .slice(0, 2)
+                    : "MA"}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Diego Bancayan</span>
+                <span className="truncate font-medium">
+                  {staff ? staff.name : "Equipo interno"}
+                </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Product Owner
+                  {staff ? staff.role : "MAIA"}
                 </span>
               </div>
             </SidebarMenuButton>

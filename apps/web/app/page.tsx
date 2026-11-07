@@ -78,8 +78,8 @@ export default function HomePage() {
             </p>
             <p className="mt-1 text-muted-foreground">
               Si hay riesgo inmediato, llama a los servicios locales (en Perú,
-              105). Este canal no atiende las 24 horas. Adjuntos: PDF, imágenes
-              o DOCX, hasta 10 MB.
+              105). Este canal no atiende las 24 horas y no promete anonimato
+              absoluto. Adjuntos: PDF, imágenes o DOCX, hasta 10 MB.
             </p>
           </div>
         </div>

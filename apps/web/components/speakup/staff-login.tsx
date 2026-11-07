@@ -18,7 +18,9 @@ import { PublicShell } from "@/components/speakup/public-shell"
 
 const DEMOS = [
   { email: "ana@maia.demo", role: "Receptor" },
+  { email: "sofia@maia.demo", role: "Receptor independiente" },
   { email: "carlos@maia.demo", role: "Investigador" },
+  { email: "marco@maia.demo", role: "Revisor" },
   { email: "lucia@maia.demo", role: "Administrador" },
 ]
 

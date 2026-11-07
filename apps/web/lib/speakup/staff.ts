@@ -25,6 +25,22 @@ export const STAFF_USERS: StaffUser[] = [
     role: "administrador",
     roleLabel: "Administrador",
   },
+  {
+    id: "sofia",
+    name: "Sofía Independiente",
+    email: "sofia@maia.demo",
+    password: "maia-demo",
+    role: "receptor_independiente",
+    roleLabel: "Receptor independiente",
+  },
+  {
+    id: "marco",
+    name: "Marco Revisor",
+    email: "marco@maia.demo",
+    password: "maia-demo",
+    role: "revisor",
+    roleLabel: "Revisor",
+  },
 ]
 
 export function findStaffByEmail(email: string) {
@@ -73,6 +89,19 @@ export const SEED_REPORTS: InboxReport[] = [
     narrative: "Situación en otra sede; pocos datos.",
     mode: "anonymous",
   },
+  {
+    id: "rep_4",
+    trackingCode: "SU-INDE-0190",
+    createdAt: new Date(Date.now() - 50e5).toISOString(),
+    status: "recibido",
+    category: "Represalia",
+    ownerId: "sofia",
+    urgency: "alta",
+    dueAt: daysFromNow(2),
+    narrative:
+      "El reporte menciona al receptor habitual. Ruta independiente.",
+    mode: "confidential",
+  },
 ]
 
 export const SEED_CASES: InboxCase[] = [
@@ -101,7 +130,7 @@ export const SEED_CASES: InboxCase[] = [
     createdAt: new Date(Date.now() - 20 * 86e5).toISOString(),
     phase: "abierto",
     category: "Represalia",
-    ownerId: "lucia",
+    ownerId: "sofia",
     urgency: "alta",
     dueAt: daysFromNow(3),
     title: "Ruta independiente · reporte contra receptor habitual",
@@ -114,10 +143,11 @@ export function filterReportsForRole(
   userId: string
 ) {
   if (role === "administrador" || role === "revisor") return reports
-  if (role === "receptor" || role === "receptor_independiente") {
-    return reports.filter(
-      (r) => r.ownerId === userId || r.ownerId === null || r.ownerId === "ana"
-    )
+  if (role === "receptor") {
+    return reports.filter((r) => r.ownerId === userId || r.ownerId === null)
+  }
+  if (role === "receptor_independiente") {
+    return reports.filter((r) => r.ownerId === userId)
   }
   return []
 }
@@ -128,7 +158,7 @@ export function filterCasesForRole(
   userId: string
 ) {
   if (role === "administrador" || role === "revisor") return cases
-  if (role === "investigador") {
+  if (role === "investigador" || role === "receptor_independiente") {
     return cases.filter((c) => c.ownerId === userId)
   }
   return []

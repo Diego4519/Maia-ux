@@ -26,6 +26,32 @@ import type {
   StaffUser,
 } from "./types"
 
+const CATEGORY_LABELS: Record<string, string> = {
+  acoso: "Acoso o discriminación",
+  fraude: "Fraude o soborno",
+  represalia: "Represalia",
+  seguridad: "Seguridad e higiene",
+  otro: "Otro incumplimiento",
+  "no-estoy-seguro": "No estoy seguro",
+}
+
+function categoryLabel(raw: string | null | undefined) {
+  if (!raw) return "No especificada"
+  return CATEGORY_LABELS[raw] || raw
+}
+
+function normalizeAttachments(raw: unknown): AttachmentMeta[] {
+  if (!Array.isArray(raw)) return []
+  return raw.map((item) => {
+    const a = item as { name?: string; size?: number; type?: string }
+    return {
+      name: String(a?.name ?? "archivo"),
+      size: Number(a?.size ?? 0),
+      type: String(a?.type ?? "application/octet-stream"),
+    }
+  })
+}
+
 export type ReportRecord = {
   trackingCode: string
   secretHash: string
@@ -75,16 +101,32 @@ function emptyStore(): StoreFile {
   }
 }
 
+function mergeSeeds(store: StoreFile) {
+  const seedReportIds = new Set(SEED_REPORTS.map((row) => row.id))
+  const seedCaseIds = new Set(SEED_CASES.map((row) => row.id))
+  store.inboxReports = [
+    ...SEED_REPORTS,
+    ...store.inboxReports.filter((row) => !seedReportIds.has(row.id)),
+  ]
+  store.inboxCases = [
+    ...SEED_CASES,
+    ...store.inboxCases.filter((row) => !seedCaseIds.has(row.id)),
+  ]
+}
+
 function readStore(): StoreFile {
   try {
     if (!existsSync(DATA_FILE)) return emptyStore()
     const parsed = JSON.parse(readFileSync(DATA_FILE, "utf8")) as StoreFile
-    if (!parsed.inboxReports?.length) parsed.inboxReports = SEED_REPORTS
-    if (!parsed.inboxCases?.length) parsed.inboxCases = SEED_CASES
+    parsed.inboxReports ??= []
+    parsed.inboxCases ??= []
     parsed.mailboxSessions ??= {}
     parsed.staffSessions ??= {}
     parsed.lockouts ??= {}
     parsed.reports ??= {}
+    if (!parsed.inboxReports.length) parsed.inboxReports = [...SEED_REPORTS]
+    if (!parsed.inboxCases.length) parsed.inboxCases = [...SEED_CASES]
+    mergeSeeds(parsed)
     return parsed
   } catch {
     return emptyStore()
@@ -104,12 +146,33 @@ export function createPublicReport(input: {
   mode: string
   narrative: string
   category?: string | null
+  attachments?: unknown
 }) {
   const store = readStore()
   const trackingCode = generateTrackingCode()
   const secret = generateSecret()
   const secretSalt = newSalt()
   const now = new Date().toISOString()
+  const attachments = normalizeAttachments(input.attachments)
+  const category = categoryLabel(input.category)
+  const messages: MailMessage[] = [
+    {
+      id: newId("msg"),
+      from: "team",
+      body: "Recibimos tu reporte. Para avanzar, ¿puedes contarnos si hay fechas, lugares o personas adicionales que no hayas incluido? Si tienes un archivo que ayude a entender lo ocurrido, puedes adjuntarlo aquí.",
+      createdAt: now,
+      attachments: [],
+    },
+  ]
+  if (attachments.length) {
+    messages.push({
+      id: newId("msg"),
+      from: "reporter",
+      body: "Adjuntos enviados con el reporte.",
+      createdAt: now,
+      attachments,
+    })
+  }
 
   store.reports[trackingCode] = {
     trackingCode,
@@ -118,16 +181,8 @@ export function createPublicReport(input: {
     createdAt: now,
     narrative: input.narrative,
     mode: input.mode,
-    category: input.category ?? null,
-    messages: [
-      {
-        id: newId("msg"),
-        from: "team",
-        body: "Recibimos tu reporte. Para avanzar, ¿puedes contarnos si hay fechas, lugares o personas adicionales que no hayas incluido? Si tienes un archivo que ayude a entender lo ocurrido, puedes adjuntarlo aquí.",
-        createdAt: now,
-        attachments: [],
-      },
-    ],
+    category,
+    messages,
   }
 
   store.inboxReports.unshift({
@@ -135,7 +190,7 @@ export function createPublicReport(input: {
     trackingCode,
     createdAt: now,
     status: "recibido",
-    category: input.category || "No especificada",
+    category,
     ownerId: "ana",
     urgency: "media",
     dueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),

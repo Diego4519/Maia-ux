@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { Paperclip, X } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
@@ -23,6 +23,14 @@ export function formatBytes(n: number) {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function isAllowed(file: File) {
+  if (file.size > MAX_BYTES) return "Cada archivo puede pesar hasta 10 MB."
+  const byType = ALLOWED.includes(file.type)
+  const byName = /\.(pdf|docx|png|jpe?g|webp)$/i.test(file.name)
+  if (!byType && !byName) return "Solo se aceptan PDF, imágenes o DOCX."
+  return null
+}
+
 export function FileDrop({
   files,
   onChange,
@@ -31,17 +39,26 @@ export function FileDrop({
   onChange: (files: UploadedFile[]) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [dragging, setDragging] = useState(false)
+  const [reject, setReject] = useState<string | null>(null)
 
   function add(list: FileList | null) {
     if (!list) return
     const next = [...files]
+    let message: string | null = null
     for (const f of Array.from(list)) {
-      if (f.size > MAX_BYTES) continue
-      if (ALLOWED.length && f.type && !ALLOWED.includes(f.type) && !f.name.match(/\.(pdf|docx|png|jpe?g|webp)$/i)) {
+      const reason = isAllowed(f)
+      if (reason) {
+        message = reason
         continue
       }
-      next.push({ name: f.name, size: f.size, type: f.type || "application/octet-stream" })
+      next.push({
+        name: f.name,
+        size: f.size,
+        type: f.type || "application/octet-stream",
+      })
     }
+    setReject(message)
     onChange(next)
   }
 
@@ -49,8 +66,19 @@ export function FileDrop({
     <div>
       <div
         className={cn(
-          "rounded-xl border border-dashed bg-muted/20 px-4 py-6 text-center"
+          "rounded-xl border border-dashed bg-muted/20 px-4 py-6 text-center",
+          dragging ? "border-foreground/40 bg-muted/40" : ""
         )}
+        onDragOver={(e) => {
+          e.preventDefault()
+          setDragging(true)
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault()
+          setDragging(false)
+          add(e.dataTransfer.files)
+        }}
       >
         <p className="text-sm font-medium">Arrastra archivos o selecciónalos</p>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -74,6 +102,11 @@ export function FileDrop({
           Seleccionar archivos
         </Button>
       </div>
+      {reject ? (
+        <p className="mt-2 text-xs text-destructive" role="alert">
+          {reject}
+        </p>
+      ) : null}
       {files.length > 0 ? (
         <ul className="mt-2 space-y-1">
           {files.map((f) => (
