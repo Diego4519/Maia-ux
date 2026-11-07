@@ -6,6 +6,7 @@ import {
   ChevronRight,
   FileSearch,
   History,
+  Inbox,
   LayoutDashboard,
   Search,
   Shield,
@@ -71,6 +72,7 @@ const addonModules = [
 export function MaiaSidebar() {
   const pathname = usePathname()
   const isScreeningActive = pathname.startsWith("/screening")
+  const isSpeakUpActive = pathname.startsWith("/bandeja")
   const { pendingAlerts, exceptionQueue } = useWorkbench()
 
   const badges: Record<string, number | undefined> = {
@@ -108,6 +110,21 @@ export function MaiaSidebar() {
           <SidebarGroupLabel>Módulos comerciales</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  tooltip="SpeakUp"
+                  isActive={isSpeakUpActive}
+                >
+                  <Link href="/bandeja">
+                    <Inbox />
+                    <span>SpeakUp</span>
+                    <Badge variant="secondary" className="ml-auto text-[10px]">
+                      Activo
+                    </Badge>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <Collapsible defaultOpen className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>

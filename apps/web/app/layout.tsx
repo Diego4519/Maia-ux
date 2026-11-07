@@ -19,8 +19,9 @@ const outfit = Outfit({
 })
 
 export const metadata = {
-  title: "MAIA Compliance Hub",
-  description: "Plataforma de screening y cumplimiento AML",
+  title: "MAIA",
+  description:
+    "MAIA SpeakUp y Compliance Hub: canal de denuncias y screening en un solo producto",
 }
 
 export const viewport = {
